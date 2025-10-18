@@ -8,99 +8,121 @@
   <style>
     :root{
       --bg:#fffdf7; --fg:#1f2937; --card:#ffffff; --muted:#f2f4f8; --ring:#e8ecf3;
-      --acc:#0ea5e9; --radius:22px; --shadow:0 8px 28px rgba(0,0,0,.06);
+      --acc:#0ea5e9; --radius:20px; --shadow:0 8px 28px rgba(0,0,0,.06);
       --c-itsu:#60a5fa; --c-dokode:#34d399; --c-darega:#f59e0b; --c-doushita:#a78bfa;
-      --vh:1vh; /* JSで実寸反映 */
+      --vh:1vh; /* JSで実寸反映（iOS対策） */
     }
     *{ box-sizing:border-box }
-    html,body{ height:100%; overflow:hidden } /* ← ページスクロール禁止 */
+    html,body{ height:100%; overflow:hidden } /* ページスクロール禁止 */
     body{
       margin:0; background:var(--bg); color:var(--fg);
-      font-family:"BIZ UDPGothic", system-ui, -apple-system, "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
-      line-height:1.6;
+      font-family:"BIZ UDPGothic", system-ui, -apple-system, "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif; line-height:1.6;
     }
-    .wrap{ max-width:1100px; margin:0 auto; padding:12px; height:calc(var(--vh)*100); display:flex; align-items:center; justify-content:center }
 
-    .btn{
-      appearance:none; border:none; cursor:pointer; font-weight:800; border-radius:999px;
-      padding:12px 18px; font-size:16px; background:#fff; box-shadow:0 2px 0 rgba(0,0,0,.06); border:2px solid var(--ring)
+    /* 安全領域を考慮した外枠 */
+    .wrap{
+      height:calc(var(--vh) * 100);
+      padding-top:calc(8px + env(safe-area-inset-top));
+      padding-bottom:calc(8px + env(safe-area-inset-bottom));
+      padding-left:calc(8px + env(safe-area-inset-left));
+      padding-right:calc(8px + env(safe-area-inset-right));
+      max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:center;
     }
+
+    /* ボタン */
+    .btn{ appearance:none; border:none; cursor:pointer; font-weight:800; border-radius:999px;
+      padding:12px 18px; font-size:16px; background:#fff; box-shadow:0 2px 0 rgba(0,0,0,.06); border:2px solid var(--ring) }
     .btn.acc{ background:var(--acc); color:#fff; border-color:transparent }
     .btn:active{ transform:translateY(1px) }
     .btn[disabled]{ opacity:.5; cursor:not-allowed }
     .btn.smallbtn{ padding:8px 12px; font-size:14px }
 
-    /* 画面（どれもビューポート中央に） */
-    .screen{ display:none; width:100%; height:100% }
-    .screen.show{
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
-    }
+    /* 画面（中央配置） */
+    .screen{ width:100%; height:100%; display:none }
+    .screen.show{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px }
 
-    /* 入力画面：全体が1画面に収まるサイズに調整 */
-    .panel{
-      background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); border:1px solid var(--ring);
-      width:min(100%, 1000px);
-    }
-    .lists{ display:grid; gap:12px; grid-template-columns:repeat(2,1fr) }
+    /* 入力画面（スクロールなしで収まる） */
+    .panel{ background:var(--card); border-radius:var(--radius); padding:12px; border:1px solid var(--ring); box-shadow:var(--shadow); width:min(100%,1000px) }
+    .lists{ display:grid; gap:10px; grid-template-columns:repeat(2,1fr) }
     @media (max-width:820px){ .lists{ grid-template-columns:1fr } }
     .ibox strong{ display:flex; align-items:center; gap:.5em; font-size:18px }
     .tag{ display:inline-flex; align-items:center; justify-content:center; min-width:2em; height:2em; border-radius:999px; color:#fff; font-weight:700; font-size:14px }
     .t-itsu{ background:var(--c-itsu) } .t-dokode{ background:var(--c-dokode) } .t-darega{ background:var(--c-darega) } .t-doushita{ background:var(--c-doushita) }
     textarea{
-      width:100%; height:110px; /* 固定高で一画面収める */
-      resize:none; border-radius:14px; border:2px solid var(--ring); padding:10px; font-size:16px; background:#fff
+      width:100%; height:110px; resize:none; border-radius:14px; border:2px solid var(--ring); padding:10px; font-size:16px; background:#fff;
     }
-    .center{ display:flex; gap:12px; justify-content:center }
+    .center{ display:flex; gap:10px; justify-content:center }
 
-    /* カード画面 */
+    /* コンパクト化（小さな端末/横向き） */
+    @media (max-height:700px){
+      textarea{ height:90px; font-size:15px }
+      .panel{ padding:10px }
+      .btn{ padding:10px 14px; font-size:15px }
+    }
+    @media (max-height:620px){
+      textarea{ height:72px; font-size:14px }
+      .btn{ padding:8px 12px; font-size:14px }
+    }
+
+    /* カード画面（トップバー＋中央盤面） */
     .topbar{
-      width:min(100%, 1100px);
-      display:flex; align-items:center; gap:8px; justify-content:space-between;
+      width:min(100%,1100px);
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
       padding:8px; background:linear-gradient(#fffdf7, rgba(255,253,247,.7));
       border:1px solid var(--ring); border-radius:12px;
     }
-    .topbar .pill{
-      display:inline-flex; align-items:center; gap:.5em; padding:6px 12px;
-      background:#fff; border:1px solid var(--ring); border-radius:999px; font-weight:900; font-size:14px;
-    }
+    .topbar .pill{ display:inline-flex; align-items:center; gap:.5em; padding:6px 12px; background:#fff; border:1px solid var(--ring); border-radius:999px; font-weight:900; font-size:14px }
     .topbar .right{ display:flex; gap:8px; align-items:center }
 
-    .stage-cards{
-      width:100%; height:calc(var(--vh)*100 - 74px - 24px); /* 74: トップバー高さ相当, 24: 外側余白 */
-      display:flex; align-items:center; justify-content:center;
-    }
-    @media (max-width:820px){
-      .stage-cards{ height:calc(var(--vh)*100 - 74px - 20px) }
+    .stage-cards{ /* 残りの領域を占め、中央に盤面を置く */
+      width:100%; flex:1; display:flex; align-items:center; justify-content:center;
     }
 
     .board{
-      width:min(100%, 1100px);
-      height:min(100%, 720px); /* 盤面自体も最大値で抑える（電子黒板でも大きすぎない） */
-      display:grid; gap:12px;
+      width:min(100%,1100px);
+      height:min(100%,720px);
+      display:grid; gap:10px;
       grid-template-columns:repeat(2,1fr);
-      grid-template-rows:repeat(2,1fr); /* 2x2で常に1画面に収める */
+      grid-template-rows:repeat(2,1fr); /* デフォは2×2で画面に収める */
     }
+    /* 横向きスマホでも1行4列に */
+    @media (orientation:landscape) and (max-height:480px){
+      .board{ grid-template-columns:repeat(4,1fr); grid-template-rows:1fr; }
+    }
+    /* 大きな画面なら1行4列 */
     @media (min-width:1000px){
-      .board{ grid-template-columns:repeat(4,1fr); grid-template-rows:1fr; } /* 横長なら1行4列 */
+      .board{ grid-template-columns:repeat(4,1fr); grid-template-rows:1fr; }
     }
+
     .card{
-      background:var(--muted); border-radius:var(--radius); padding:12px;
+      background:var(--muted); border-radius:var(--radius); padding:10px;
       display:flex; flex-direction:column; justify-content:space-between; border:2px solid var(--ring); cursor:pointer;
     }
-    .label{ font-weight:800; opacity:.95; font-size:18px; display:flex; align-items:center; gap:.5em }
+    .label{ font-weight:800; opacity:.95; font-size:16px; display:flex; align-items:center; gap:.5em }
     .label .title{ display:inline-flex; align-items:center; gap:.5em }
-    .count{ margin-left:auto; font-weight:900; font-size:14px; background:#fff; border:1px solid var(--ring); border-radius:999px; padding:4px 8px }
+    .count{ margin-left:auto; font-weight:900; font-size:12px; background:#fff; border:1px solid var(--ring); border-radius:999px; padding:3px 8px }
     .value{
-      font-size:clamp(24px,5vw,40px); font-weight:900; padding:12px; background:#fff; border-radius:16px;
-      display:flex; align-items:center; justify-content:center; text-align:center; user-select:none; min-height:72px; height:100%;
+      font-size:clamp(22px,6vw,40px); font-weight:900; padding:10px; background:#fff; border-radius:14px;
+      display:flex; align-items:center; justify-content:center; text-align:center; user-select:none; min-height:64px; height:100%;
     }
     .value[data-hidden="true"]{ color:#9ca3af }
 
+    /* さらに小さい端末向け微調整 */
+    @media (max-width:420px), (max-height:560px){
+      .topbar .pill{ font-size:12px; padding:5px 10px }
+      .btn.smallbtn{ padding:6px 10px; font-size:13px }
+      .board{ gap:8px }
+      .card{ padding:8px }
+      .label{ font-size:14px }
+      .count{ font-size:11px }
+      .value{ font-size:clamp(18px,6vw,32px); min-height:56px }
+    }
+
     /* おしまい画面（中央固定） */
     .finishwrap{
-      width:min(100%, 1000px); max-height:calc(var(--vh)*100 - 24px);
+      width:min(100%,1000px); max-height:calc(var(--vh)*100 - 24px);
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
-      background:var(--card); border:1px solid var(--ring); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow);
+      background:var(--card); border:1px solid var(--ring); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);
     }
     .finishwrap .big{ font-size:clamp(28px,6vw,48px); font-weight:900 }
     .finishhist{ width:100% }
@@ -121,7 +143,7 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- ① 入力画面 -->
+    <!-- 入力画面 -->
     <section id="screen-input" class="screen show">
       <div class="panel">
         <div class="lists">
@@ -145,10 +167,11 @@
       </div>
       <div class="center" aria-live="polite">
         <button id="start" class="btn acc">▶︎ スタート</button>
+      
       </div>
     </section>
 
-    <!-- ② カード画面（スクロール無し） -->
+    <!-- カード画面（スクロール無し・自動中央） -->
     <section id="screen-cards" class="screen">
       <div class="topbar">
         <button id="back" class="btn smallbtn" title="入力にもどる">⤴︎ もどる</button>
@@ -194,7 +217,7 @@
       <div class="sr" id="live" aria-live="polite"></div>
     </section>
 
-    <!-- ③ おしまい画面（中央固定） -->
+    <!-- おしまい画面 -->
     <section id="screen-finish" class="screen">
       <div class="finishwrap">
         <div class="big">おしまい！</div>
@@ -202,9 +225,7 @@
           <h2>れきし</h2>
           <div id="history-finish" class="hist"></div>
         </div>
-        <div>
-          <button id="finishBack" class="btn">⤴︎ もどる</button>
-        </div>
+        <div><button id="finishBack" class="btn">⤴︎ もどる</button></div>
       </div>
     </section>
   </div>
@@ -222,16 +243,14 @@
 
   <script>
     /* === 互換ユーティリティ & 100vh対策 === */
-    function setVh(){ try{ var vh = window.innerHeight*0.01; document.documentElement.style.setProperty('--vh', vh+'px'); }catch(e){} }
+    function setVh(){ try{ var vh = window.innerHeight * 0.01; document.documentElement.style.setProperty('--vh', vh + 'px'); }catch(e){} }
     setVh(); window.addEventListener('resize', setVh); window.addEventListener('orientationchange', setVh);
 
     function deepClone(o){ try{ return JSON.parse(JSON.stringify(o)); }catch(e){ return o; } }
-    function safeParse(key, fallback){
-      try{ var s=localStorage.getItem(key); return s ? JSON.parse(s) : deepClone(fallback); }
-      catch(e){ return deepClone(fallback); }
-    }
-    function len(arr){ return Array.isArray(arr) ? arr.length : 0; }
+    function safeParse(key, fallback){ try{ var s=localStorage.getItem(key); return s ? JSON.parse(s) : deepClone(fallback); }catch(e){ return deepClone(fallback); } }
     function shuffleArr(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+    function linesToList(txt){ return String(txt||"").split(/\r?\n/).map(function(s){return s.trim();}).filter(function(s){return !!s;}); }
+    function listToLines(arr){ return (arr||[]).join("\n"); }
 
     /* 語彙デフォルト */
     var defaults = {
@@ -265,13 +284,10 @@
       localStorage.setItem("ichidoko_lists",JSON.stringify(state.lists));
       localStorage.setItem("ichidoko_hist",JSON.stringify(state.history));
     }catch(e){} }
-    function linesToList(txt){ return String(txt||"").split(/\r?\n/).map(function(s){return s.trim();}).filter(function(s){return !!s;}); }
-    function listToLines(arr){ return (arr||[]).join("\n"); }
 
     /* 履歴描画（おしまい＋モーダル） */
     function renderHistoryInto(el){
-      if(!el) return;
-      el.innerHTML="";
+      if(!el) return; el.innerHTML="";
       for(var i=0;i<state.history.length;i++){
         var span=document.createElement("span");
         span.className="chip"; span.textContent=state.history[i];
@@ -302,6 +318,7 @@
         state.history=[s].concat(filtered);
         save(); renderHistory();
         nextBtn.disabled=false;
+        if(navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} } // ちょいフィードバック
       }
     }
 
@@ -367,22 +384,23 @@
     }
 
     /* モーダル（れきし） */
-    function openModal(){ modal.classList.add('show'); modal.setAttribute('aria-hidden','false'); }
-    function closeModal(){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
-    $("#openHistory").addEventListener("click", openModal);
-    $("#closeModal").addEventListener("click", closeModal);
-    modal.addEventListener("click", function(e){ if(e.target===modal) closeModal(); });
+    var modalEl=document.getElementById('modal');
+    function openModal(){ modalEl.classList.add('show'); modalEl.setAttribute('aria-hidden','false'); }
+    function closeModal(){ modalEl.classList.remove('show'); modalEl.setAttribute('aria-hidden','true'); }
+    document.getElementById("openHistory").addEventListener("click", openModal);
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    modalEl.addEventListener("click", function(e){ if(e.target===modalEl) closeModal(); });
 
     /* 操作 */
-    $("#back").addEventListener("click",function(){ showScreen("input"); });
-    $("#finishBack").addEventListener("click",function(){ showScreen("input"); });
-    $("#next").addEventListener("click",function(){
+    document.getElementById("back").addEventListener("click",function(){ showScreen("input"); });
+    document.getElementById("finishBack").addEventListener("click",function(){ showScreen("input"); });
+    document.getElementById("next").addEventListener("click",function(){
       if(remainingProblems()<=0){ showScreen("finish"); return; }
       prepareRound(true);
     });
 
     /* スタート（最新ゲームのみ保存） */
-    $("#start").addEventListener("click",function(){
+    document.getElementById("start").addEventListener("click",function(){
       ensureListsFilled();
       state.history=[]; save(); renderHistory();
       buildDecks();
@@ -392,7 +410,7 @@
     });
 
     /* サンプル */
-    $("#fillSamples").addEventListener("click",function(){
+    document.getElementById("fillSamples").addEventListener("click",function(){
       state.lists=deepClone(defaults);
       for(var i=0;i<KEYS.length;i++){ var k=KEYS[i]; tEls[k].value=listToLines(state.lists[k]); }
       save();
