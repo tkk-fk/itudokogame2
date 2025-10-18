@@ -98,15 +98,35 @@
     .value[data-hidden="true"]{ color:#9ca3af }
 
     /* おしまい画面（中央固定・履歴は軽量表示） */
-    .finishwrap{
-      width:min(100%,1000px); max-height:calc(var(--vh)*100 - 24px);
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
-      background:var(--card); border:1px solid var(--ring); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);
-    }
-    .finishwrap .big{ font-size:clamp(28px,6vw,48px); font-weight:900 }
-    .finishhist{ width:100% }
-    .finishhist .note{ font-size:12px; color:#64748b; margin-top:4px; text-align:center }
+/* おしまい画面（ボタン常時表示・中身だけスクロール） */
+.finishwrap{
+  width:min(100%,1000px);
+  height:calc(var(--vh)*100 - 24px);          /* 画面高ぴったり */
+  display:grid;
+  grid-template-rows: auto 1fr auto;          /* 上:タイトル / 中:履歴 / 下:もどる */
+  gap:12px;
+  align-items:center;
+  justify-items:center;
+  background:var(--card);
+  border:1px solid var(--ring);
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+.finishwrap .big{ font-size:clamp(28px,6vw,48px); font-weight:900 }
 
+/* 真ん中の履歴エリアだけ縦スクロール可にする */
+.finishhist{
+  width:100%;
+  min-height:0;     /* ← Grid内でoverflowを効かせるため必須 */
+  overflow:auto;    /* ← はみ出すのはここだけスクロール */
+}
+
+/* 画面がさらに低い端末での微調整（任意） */
+@media (max-height:560px){
+  .finishwrap{ padding:16px; gap:10px }
+  .finishwrap .big{ font-size:clamp(24px,5.5vw,40px) }
+}
     /* モーダル（れきし全件） */
     .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; padding:16px }
     .modal.show{ display:flex }
